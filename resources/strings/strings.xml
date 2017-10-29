@@ -1,0 +1,12 @@
+<strings>
+    <string id="AppName">PascisFirstDataField</string>
+
+    <string id="labelPower">Pwr</string>
+    <string id="labelWkg">Wkg</string>
+    <string id="labelHr">BPM</string>
+    <string id="labelCad">RPM</string>
+    
+    <string id="label3s">3s</string>
+    <string id="labelLap">Lap</string>
+    <string id="labelTotal">Act</string>
+</strings>
