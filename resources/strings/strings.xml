@@ -1,12 +1,12 @@
 <strings>
-    <string id="AppName">PascisFirstDataField</string>
+    <string id="AppName">Pro Indoor Field</string>
 
-    <string id="labelPower">Pwr</string>
-    <string id="labelWkg">Wkg</string>
+    <string id="labelPower">PWR</string>
+    <string id="labelWkg">WKG</string>
     <string id="labelHr">BPM</string>
     <string id="labelCad">RPM</string>
     
     <string id="label3s">3s</string>
-    <string id="labelLap">Lap</string>
-    <string id="labelTotal">Act</string>
+    <string id="labelLap">LAP</string>
+    <string id="labelTotal">TOT</string>
 </strings>
