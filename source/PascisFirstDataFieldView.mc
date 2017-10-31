@@ -198,10 +198,10 @@ class PascisFirstDataFieldView extends Ui.DataField {
         dc.drawText(tableColumnCenterX, tableLabelY, Gfx.FONT_SYSTEM_TINY, Ui.loadResource(Rez.Strings.labelLap), Gfx.TEXT_JUSTIFY_CENTER);
         dc.drawText(tableColumnRightX, tableLabelY, Gfx.FONT_SYSTEM_TINY, Ui.loadResource(Rez.Strings.labelTotal), Gfx.TEXT_JUSTIFY_CENTER);
         
-        //hr value
+        //hr and cadence value
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         dc.drawText(tbDataLeftX, topDataY, Gfx.FONT_NUMBER_MILD, mHr.format("%d"), Gfx.TEXT_JUSTIFY_RIGHT);
-        dc.drawText(tbDataRightX, topDataY, Gfx.FONT_NUMBER_MILD, Math.round(mCad / 2).format("%d"), Gfx.TEXT_JUSTIFY_LEFT);
+        dc.drawText(tbDataRightX, topDataY, Gfx.FONT_NUMBER_MILD, mCad.format("%d"), Gfx.TEXT_JUSTIFY_LEFT);
         
         //power values
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
