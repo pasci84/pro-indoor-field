@@ -5,6 +5,7 @@ using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi as Ui;
 using Toybox.AntPlus;
+using Toybox.UserProfile;
 
 class PascisFirstDataFieldView extends Ui.DataField {
 
@@ -15,6 +16,7 @@ class PascisFirstDataFieldView extends Ui.DataField {
     hidden var mIs5s;
     
     //user profile vars
+    hidden var mHrZones;
     hidden var mWeight;
     
     //calculation vars
@@ -49,9 +51,13 @@ class PascisFirstDataFieldView extends Ui.DataField {
         	System.println("Device is a fenix5s");
         }
         
+        mHrZones = UserProfile.getHeartRateZones(UserProfile.HR_ZONE_SPORT_BIKING);
+        if (mHrZones == null) {
+        	mHrZones = UserProfile.getHeartRateZones(UserProfile.HR_ZONE_SPORT_GENERIC);
+        }   
         mWeight = UserProfile.getProfile().weight;
         if (mWeight == null) {
-        	mWight = 0;
+        	mWeight = 0;
         }
         
 		mMomentsPause = [];
@@ -152,27 +158,28 @@ class PascisFirstDataFieldView extends Ui.DataField {
         var bgColor = getBackgroundColor();
         var w = dc.getWidth();
         var h = dc.getHeight();
-        var spacer = 4;
         
         var firstLineY = h / 3 * 0.9;
-        var secondLineY = h / 3 * 2;
-        var thirdLineY = secondLineY + 36 + spacer;
+        var secondLineY = h / 3 * 2 + 5;
+        var thirdLineY = secondLineY + (mIs5s ? 32 : 35);
+        var hrGraphHeight = 8;
+        var fourthLineY = thirdLineY + hrGraphHeight + 1;
         
-        var tbDataLeftX = w/2 - spacer - spacer;
-        var tbDataRightX = w/2 + spacer + spacer;
+        var tbDataLeftX = w/2 - (mIs5s ? 8 : 8);
+        var tbDataRightX = w/2 + (mIs5s ? 8 : 8);
         
-        var topLabelY = 10;
-        var topDataY = firstLineY - 25 - spacer;
+        var topLabelY = (mIs5s ? 10 : 10);
+        var topDataY = firstLineY - (mIs5s ? 29 : 33);
         
-        var tableLabelY = firstLineY - 4 + spacer;
-        var tableCenterY = h/2 + 1;
-        var tableWkgY = secondLineY - 19 - spacer;
+        var tableLabelY = firstLineY;
+        var tableCenterY = h/2 + (mIs5s ? 3 : 3);
+        var tableWkgY = tableCenterY + (mIs5s ? 14 : 14);
         
         var tableColumnLeftX = w/4 - w*0.075;
         var tableColumnCenterX = w/2;
         var tableColumnRightX = w/4*3 + w*0.075;
         
-        var timerY = secondLineY + 3 + spacer;
+        var timerY = secondLineY;
         
         //background
         dc.setColor(bgColor, bgColor);
@@ -197,10 +204,34 @@ class PascisFirstDataFieldView extends Ui.DataField {
         dc.drawLine(w/3*2, firstLineY, w/3*2, secondLineY);
         dc.drawLine(w/2, secondLineY, w/2, thirdLineY);
         dc.drawLine(0, thirdLineY, w, thirdLineY);
+        dc.drawLine(0, fourthLineY, w, fourthLineY);
+        
+        //lower part hr
+        var hrRange = mHrZones[5] - mHrZones[0];        
+        var hrX1 = getHrX(w, mHrZones[1]);
+        var hrX2 = getHrX(w, mHrZones[2]);
+        var hrX3 = getHrX(w, mHrZones[3]);
+        var hrX4 = getHrX(w, mHrZones[4]);
+        var hrXCurrent = getHrX(w, mHr);      
+        dc.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(0, thirdLineY+1, hrX1, hrGraphHeight);
+        dc.setColor(Gfx.COLOR_BLUE, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(hrX1, thirdLineY+1, hrX2-hrX1, hrGraphHeight);
+        dc.setColor(Gfx.COLOR_GREEN, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(hrX2, thirdLineY+1, hrX3-hrX2, hrGraphHeight);
+        dc.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(hrX3, thirdLineY+1, hrX4-hrX3, hrGraphHeight);
+        dc.setColor(Gfx.COLOR_RED, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(hrX4, thirdLineY+1, w-hrX4, hrGraphHeight);
+        
+        dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
+        dc.fillRectangle(hrXCurrent-1, thirdLineY+2, 3, hrGraphHeight-2);
+        
+        //lower part tri 17
         dc.setColor(Gfx.COLOR_DK_GRAY, Gfx.COLOR_TRANSPARENT);
-        dc.fillRectangle(0, thirdLineY+1, w, h-thirdLineY);
+        dc.fillRectangle(0, fourthLineY+1, w, h-fourthLineY);
         dc.setColor(bgColor, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(w/2, thirdLineY+(h-thirdLineY)/2-12, Gfx.FONT_SYSTEM_TINY, "=TRI17=", Gfx.TEXT_JUSTIFY_CENTER);        
+        dc.drawText(w/2, fourthLineY+(h-fourthLineY)/2-(mIs5s ? 12 : 14), Gfx.FONT_SYSTEM_TINY, "=TRI17=", Gfx.TEXT_JUSTIFY_CENTER);        
         
         //labels
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_LT_GRAY : Gfx.COLOR_DK_GRAY, Gfx.COLOR_TRANSPARENT);
@@ -228,14 +259,14 @@ class PascisFirstDataFieldView extends Ui.DataField {
         //timers
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         if (mLapTime.value() > 3600) {
-        	dc.drawText(tbDataLeftX, timerY, Gfx.FONT_SYSTEM_SMALL, formatDuration(mLapTime), Gfx.TEXT_JUSTIFY_RIGHT);
+        	dc.drawText(tbDataLeftX, timerY + (mIs5s ? 3 : 3), Gfx.FONT_SYSTEM_SMALL, formatDuration(mLapTime, true), Gfx.TEXT_JUSTIFY_RIGHT);
     	} else {
-    		dc.drawText(tbDataLeftX, timerY - 3, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mLapTime), Gfx.TEXT_JUSTIFY_RIGHT);
+    		dc.drawText(tbDataLeftX, timerY, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mLapTime, false), Gfx.TEXT_JUSTIFY_RIGHT);
     	}
     	if (mTotalTime.value() > 3600) {
-        	dc.drawText(tbDataRightX, timerY, Gfx.FONT_SYSTEM_SMALL, formatDuration(mTotalTime), Gfx.TEXT_JUSTIFY_LEFT);
+        	dc.drawText(tbDataRightX, timerY + (mIs5s ? 3 : 3), Gfx.FONT_SYSTEM_SMALL, formatDuration(mTotalTime, true), Gfx.TEXT_JUSTIFY_LEFT);
     	} else {
-    		dc.drawText(tbDataRightX, timerY - 3, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mTotalTime), Gfx.TEXT_JUSTIFY_LEFT);
+    		dc.drawText(tbDataRightX, timerY, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mTotalTime, false), Gfx.TEXT_JUSTIFY_LEFT);
     	}
         
         //lap overlay
@@ -243,7 +274,7 @@ class PascisFirstDataFieldView extends Ui.DataField {
         	dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         	dc.fillRectangle(w/3+1, firstLineY+1, w/3-1, secondLineY-firstLineY);
         	dc.setColor(Gfx.COLOR_RED, Gfx.COLOR_TRANSPARENT);
-        	dc.drawText(w/2, h/2 - 6, Gfx.FONT_SYSTEM_LARGE, "LAP!", Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
+        	dc.drawText(w/2, tableCenterY - 5, Gfx.FONT_SYSTEM_LARGE, "LAP", Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
         }
     }
     
@@ -337,13 +368,13 @@ class PascisFirstDataFieldView extends Ui.DataField {
     	System.println("Pauses: " + ret);    	
     }
     
-    function formatDuration(duration) {
+    function formatDuration(duration, showHour) {
     	var seconds = duration.value();    
     	var h = Math.floor(seconds / 3600);
     	var m = Math.floor((seconds % 3600) / 60);
     	var s = Math.round(seconds % 60);
     	
-    	if (h > 0) {
+    	if (showHour) {
     		return h.format("%02d") + ":" + m.format("%02d") + ":" + s.format("%02d");
 		} else {
 			return m.format("%02d") + ":" + s.format("%02d");
@@ -357,6 +388,16 @@ class PascisFirstDataFieldView extends Ui.DataField {
 
     function isSingleFieldLayout() {
         return (DataField.getObscurityFlags() == OBSCURE_TOP | OBSCURE_LEFT | OBSCURE_BOTTOM | OBSCURE_RIGHT);
+    }
+    
+    function getHrX(width, hr) {
+    	if (hr <= mHrZones[0]) {
+    		return 0;
+		} else if (hr >= mHrZones[5]) {
+			return width;
+		} else {
+			return ((hr - mHrZones[0]) / (mHrZones[5] - mHrZones[0]).toFloat() * width).toNumber();
+		}
     }
 
 }
