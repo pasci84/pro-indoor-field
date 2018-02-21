@@ -165,7 +165,7 @@ class PascisFirstDataFieldView extends Ui.DataField {
         var topDataY = firstLineY - 25 - spacer;
         
         var tableLabelY = firstLineY - 4 + spacer;
-        var tableCenterY = h/2 + 1 + 17;
+        var tableCenterY = h/2 + 1;
         var tableWkgY = secondLineY - 19 - spacer;
         
         var tableColumnLeftX = w/4 - w*0.075;
