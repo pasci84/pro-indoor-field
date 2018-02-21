@@ -4,11 +4,15 @@ using Toybox.Math;
 using Toybox.System;
 using Toybox.Time;
 using Toybox.WatchUi as Ui;
+using Toybox.AntPlus;
 
 class PascisFirstDataFieldView extends Ui.DataField {
 
 	const NUM_SAMPLES_TO_DISPLAY_AVG = 2;
 	const LAP_OVERLAY_TIMEOUT = 3;
+    
+    //system vars
+    hidden var mIs5s;
     
     //user profile vars
     hidden var mWeight;
@@ -36,6 +40,14 @@ class PascisFirstDataFieldView extends Ui.DataField {
 
     function initialize() {
         DataField.initialize();
+        
+        if (System.getDeviceSettings().screenWidth == 240) {
+        	mIs5s = false;
+        	System.println("Device is a fenix5 or fenix5x");
+        } else {
+        	mIs5s = true;
+        	System.println("Device is a fenix5s");
+        }
         
         mWeight = UserProfile.getProfile().weight;
         if (mWeight == null) {
@@ -143,8 +155,8 @@ class PascisFirstDataFieldView extends Ui.DataField {
         var spacer = 4;
         
         var firstLineY = h / 3 * 0.9;
-        var secondLineY = h / 3 * 2.2;
-        var thirdLineY = secondLineY + 19 + spacer;
+        var secondLineY = h / 3 * 2;
+        var thirdLineY = secondLineY + 36 + spacer;
         
         var tbDataLeftX = w/2 - spacer - spacer;
         var tbDataRightX = w/2 + spacer + spacer;
@@ -153,14 +165,14 @@ class PascisFirstDataFieldView extends Ui.DataField {
         var topDataY = firstLineY - 25 - spacer;
         
         var tableLabelY = firstLineY - 4 + spacer;
-        var tableCenterY = h/2 + 1;
+        var tableCenterY = h/2 + 1 + 17;
         var tableWkgY = secondLineY - 19 - spacer;
         
         var tableColumnLeftX = w/4 - w*0.075;
         var tableColumnCenterX = w/2;
         var tableColumnRightX = w/4*3 + w*0.075;
         
-        var timerY = secondLineY - 4 + spacer;
+        var timerY = secondLineY + 3 + spacer;
         
         //background
         dc.setColor(bgColor, bgColor);
@@ -205,9 +217,9 @@ class PascisFirstDataFieldView extends Ui.DataField {
         
         //power values
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(tableColumnLeftX, tableCenterY, m3sAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, m3sAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(tableColumnCenterX, tableCenterY, mLapAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, mLapAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(tableColumnRightX, tableCenterY, mTotalAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, mTotalAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(tableColumnLeftX, tableCenterY - 6, m3sAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, m3sAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(tableColumnCenterX, tableCenterY - 6, mLapAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, mLapAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(tableColumnRightX, tableCenterY - 6, mTotalAvgPower > 1000 ? Gfx.FONT_NUMBER_MILD : Gfx.FONT_NUMBER_MEDIUM, mTotalAvgPower.format("%d"), Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_DK_GRAY : Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
         dc.drawText(tableColumnLeftX, tableWkgY, Gfx.FONT_SYSTEM_TINY, mWeight == 0 ? "Weight?" : m3sAvgPowerWkg.format(m3sAvgPowerWkg > 10 ? "%.1f" : "%.2f"), Gfx.TEXT_JUSTIFY_CENTER);
         dc.drawText(tableColumnCenterX, tableWkgY, Gfx.FONT_SYSTEM_TINY, mWeight == 0 ? "Weight?" : mLapAvgPowerWkg.format(mLapAvgPowerWkg > 10 ? "%.1f" : "%.2f"), Gfx.TEXT_JUSTIFY_CENTER);
@@ -215,15 +227,23 @@ class PascisFirstDataFieldView extends Ui.DataField {
         
         //timers
         dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
-        dc.drawText(tbDataLeftX, timerY, Gfx.FONT_SYSTEM_TINY, formatDuration(mLapTime), Gfx.TEXT_JUSTIFY_RIGHT);
-        dc.drawText(tbDataRightX, timerY, Gfx.FONT_SYSTEM_TINY, formatDuration(mTotalTime), Gfx.TEXT_JUSTIFY_LEFT);
+        if (mLapTime.value() > 3600) {
+        	dc.drawText(tbDataLeftX, timerY, Gfx.FONT_SYSTEM_SMALL, formatDuration(mLapTime), Gfx.TEXT_JUSTIFY_RIGHT);
+    	} else {
+    		dc.drawText(tbDataLeftX, timerY - 3, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mLapTime), Gfx.TEXT_JUSTIFY_RIGHT);
+    	}
+    	if (mTotalTime.value() > 3600) {
+        	dc.drawText(tbDataRightX, timerY, Gfx.FONT_SYSTEM_SMALL, formatDuration(mTotalTime), Gfx.TEXT_JUSTIFY_LEFT);
+    	} else {
+    		dc.drawText(tbDataRightX, timerY - 3, Gfx.FONT_SYSTEM_MEDIUM, formatDuration(mTotalTime), Gfx.TEXT_JUSTIFY_LEFT);
+    	}
         
         //lap overlay
         if (mMomentsLap.size() > 1 && Time.now().subtract(mMomentsLap[mMomentsLap.size()-1]).value() < LAP_OVERLAY_TIMEOUT) {
         	dc.setColor(bgColor == Gfx.COLOR_WHITE ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
         	dc.fillRectangle(w/3+1, firstLineY+1, w/3-1, secondLineY-firstLineY);
         	dc.setColor(Gfx.COLOR_RED, Gfx.COLOR_TRANSPARENT);
-        	dc.drawText(w/2, h/2, Gfx.FONT_SYSTEM_LARGE, "LAP!", Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
+        	dc.drawText(w/2, h/2 - 6, Gfx.FONT_SYSTEM_LARGE, "LAP!", Gfx.TEXT_JUSTIFY_CENTER|Gfx.TEXT_JUSTIFY_VCENTER);
         }
     }
     
@@ -321,8 +341,13 @@ class PascisFirstDataFieldView extends Ui.DataField {
     	var seconds = duration.value();    
     	var h = Math.floor(seconds / 3600);
     	var m = Math.floor((seconds % 3600) / 60);
-    	var s = Math.round(seconds % 60);    	
-    	return h.format("%02d") + ":" + m.format("%02d") + ":" + s.format("%02d");
+    	var s = Math.round(seconds % 60);
+    	
+    	if (h > 0) {
+    		return h.format("%02d") + ":" + m.format("%02d") + ":" + s.format("%02d");
+		} else {
+			return m.format("%02d") + ":" + s.format("%02d");
+		}
     }
     
     function formatMoment(moment) {
